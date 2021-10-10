@@ -2,6 +2,7 @@ package com.company;
 
 import org.junit.Test;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationHandler;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 class MethodInterception {
 
     @Test
-    public void annotationValue() {
+    public void AnnotationValue() {
         MainPage mainPage = createPage(MainPage.class);
 
         assertNotNull(mainPage);
@@ -32,8 +33,8 @@ class MethodInterception {
     }
 
     private static MainPage createPage(Class<MainPage> clazz) {
-        return (MainPage)Proxy.newProxyInstance(SomeInvocationHandler.class.getClassLoader(), new Class[] { clazz },
-                new SomeInvocationHandler());
+        return (MainPage)Proxy.newProxyInstance(SelectorSomeInvocationHandler.class.getClassLoader(), new Class[] { clazz },
+                new SelectorSomeInvocationHandler());
     }
 
 }
@@ -45,13 +46,13 @@ interface MainPage {
     @Selector(xpath = ".//*[@test-attr='button_search']")
     String buttonSearch();
 }
-
-
-class SomeInvocationHandler implements InvocationHandler {
+class SelectorSomeInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-       return method.getAnnotation(Selector.class).xpath();
+        if (method.isAnnotationPresent(Selector.class)) {
+            return method.getAnnotation(Selector.class).xpath();
+        }
+        return method.invoke(proxy, args);
     }
 }
-
